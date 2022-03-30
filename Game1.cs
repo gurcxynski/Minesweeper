@@ -10,9 +10,11 @@ namespace Minesweeper
     {
         public static int size = 10;
         public static SpriteBatch spriteBatch;
+        public static bool gameRunning = true;
         public static Texture2D field;
         public static Texture2D field2;
         public static Texture2D mine;
+        public static Texture2D flag;
         public static SpriteFont font;
         public static Dictionary<Vector2, Field> fields = new Dictionary<Vector2, Field>();
         public static Random rand = new Random();
@@ -35,7 +37,7 @@ namespace Minesweeper
             Globals.field2 = Content.Load<Texture2D>("field2");
             Globals.font = Content.Load<SpriteFont>("fonts/MarkerFelt-16");
             Globals.mine = Content.Load<Texture2D>("mine");
-
+            Globals.flag = Content.Load<Texture2D>("flag");
 
             IsMouseVisible = true;
             graphics.PreferredBackBufferHeight = graphics.PreferredBackBufferWidth = 50 * Globals.size;
@@ -67,11 +69,17 @@ namespace Minesweeper
         }
         protected override void Update(GameTime gameTime)
         {
+            if (!Globals.gameRunning) return;
             Globals.mouse.Update();
-            if (Globals.mouse.ReleasedThisFrame(MouseButtons.Left))
+            Vector2 pos = new Vector2(Globals.mouse.Position.X / 50, Globals.mouse.Position.Y / 50);
+            Field hover = Globals.fields.GetValueOrDefault(pos);
+            if (Globals.mouse.ReleasedThisFrame(MouseButtons.Left) && hover != null)
             {
-                Vector2 pos = new Vector2(Globals.mouse.Position.X / 50, Globals.mouse.Position.Y / 50);
-                if (Globals.fields.ContainsKey(pos)) Globals.fields[pos].Reveal();
+               hover.Reveal();
+            }
+            else if (Globals.mouse.ReleasedThisFrame(MouseButtons.Right) && hover != null)
+            {
+                hover.Flag();
             }
             base.Update(gameTime);
         }

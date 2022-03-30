@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
 using MonoGame.EasyInput;
 using Microsoft.Xna.Framework.Graphics;
@@ -23,9 +22,10 @@ namespace Minesweeper
         }
         public void Draw()
         {
+            UpdateTexture();
             Globals.spriteBatch.Begin();
             Globals.spriteBatch.Draw(texture, 50 * Position, Color.White);
-            if(state == State.clicked) Globals.spriteBatch.DrawString(Globals.font, value.ToString(), Position * 50 + new Vector2(20, 10), Color.Black);
+            if(state == State.clicked && value > 0) Globals.spriteBatch.DrawString(Globals.font, value.ToString(), Position * 50 + new Vector2(20, 10), Color.Black);
             Globals.spriteBatch.End();
         }
         public void Link(Vector2 arg)
@@ -45,20 +45,49 @@ namespace Minesweeper
         }
         public void Reveal()
         {
+            if(state == State.flagged) return;
             if (hasMine)
             {
                 texture = Globals.mine;
+                Globals.gameRunning = false;
+                Draw();
                 return;
             }
             state = State.clicked;
-            texture = Globals.field2;
             if (value == 0)
             {
                 foreach (var item in linked)
                 {
-                    item.state = State.clicked;
-                    item.texture = Globals.field2;
+                    if(item.state == State.hidden) item.Reveal();
                 }
+            }
+        }
+        public void Flag()
+        {
+            if (state == State.hidden) state = State.flagged;
+            else if(state == State.flagged) state = State.hidden;
+        }
+        private void UpdateTexture()
+        {
+            if (!Globals.gameRunning && hasMine)
+            {
+                texture = Globals.mine;
+                return;
+            }
+            if (state == State.hidden)
+            {
+                texture = Globals.field; 
+                return;
+            }
+            if (state == State.flagged)
+            {
+                texture = Globals.flag;
+                return;
+            }
+            if (state == State.clicked && !hasMine)
+            {
+                texture = Globals.field2; 
+                return;
             }
         }
     }
